@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Human Resources Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+h2 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+h3 {
+    margin-top: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+/* Form styles */
+form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+form label {
+    margin-bottom: 5px;
+}
+
+form input,
+form select,
+form textarea {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+form button:hover {
+    background-color: #555;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HRMS - Human Resources Management System</h1>
+    </header>
+
+    <main>
+        <section id="employees-section">
+            <h2>Employee Records</h2>
+            <div id="employees-list">
+            </div>
+            <div id="employee-form">
+                <h3>Add/Edit Employee</h3>
+                <form id="add-edit-employee-form">
+                    <label for="employee-first-name">First Name:</label>
+                    <input type="text" id="employee-first-name" name="employee-first-name" required>
+                    <label for="employee-last-name">Last Name:</label>
+                    <input type="text" id="employee-last-name" name="employee-last-name" required>
+                    <label for="employee-email">Email:</label>
+                    <input type="email" id="employee-email" name="employee-email" required>
+                    <label for="employee-phone">Phone:</label>
+                    <input type="text" id="employee-phone" name="employee-phone">
+                    <label for="employee-department">Department:</label>
+                    <select id="employee-department" name="employee-department" required>
+                    </select>
+                    <label for="employee-role">Role:</label>
+                    <select id="employee-role" name="employee-role" required>
+                    </select>
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="cancelEmployeeForm()">Cancel</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="departments-section">
+            <h2>Departments</h2>
+            <div id="departments-list">
+            </div>
+            <div id="department-form">
+                <h3>Add/Edit Department</h3>
+                <form id="add-edit-department-form">
+                    <label for="department-name">Name:</label>
+                    <input type="text" id="department-name" name="department-name" required>
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="cancelDepartmentForm()">Cancel</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="roles-section">
+            <h2>Roles</h2>
+            <div id="roles-list">
+            </div>
+            <div id="role-form">
+                <h3>Add/Edit Role</h3>
+                <form id="add-edit-role-form">
+                    <label for="role-name">Name:</label>
+                    <input type="text" id="role-name" name="role-name" required>
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="cancelRoleForm()">Cancel</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="reviews-section">
+            <h2>Performance Reviews</h2>
+            <div id="reviews-list">
+            </div>
+            <div id="review-form">
+                <h3>Add/Edit Performance Review</h3>
+                <form id="add-edit-review-form">
+                    <label for="review-employee">Employee:</label>
+                    <select id="review-employee" name="review-employee" required>
+                    </select>
+                    <label for="review-date">Review Date:</label>
+                    <input type="date" id="review-date" name="review-date" required>
+                    <label for="review-comments">Comments:</label>
+                    <textarea id="review-comments" name="review-comments" rows="4"></textarea>
+                    <label for="review-rating">Rating (1-5):</label>
+                    <input type="number" id="review-rating" name="review-rating" min="1" max="5" required>
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="cancelReviewForm()">Cancel</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    fetchEmployees();
+    fetchDepartments();
+    fetchRoles();
+    fetchReviews();
+    fetchEmployeesForReviewForm();
+});
+
+function fetchEmployees() {
+    fetch('/api/employees')
+        .then(response => response.json())
+        .then(employees => {
+            const employeesList = document.getElementById('employees-list');
+            employeesList.innerHTML = '';
+            employees.forEach(employee => {
+                const employeeDiv = document.createElement('div');
+                employeeDiv.innerHTML = `
+                    <p><strong>Name:</strong> ${employee.firstName} ${employee.lastName}</p>
+                    <p><strong>Email:</strong> ${employee.email}</p>
+                    <p><strong>Phone:</strong> ${employee.phone}</p>
+                    <p><strong>Department:</strong> ${employee.departmentId}</p>
+                    <p><strong>Role:</strong> ${employee.roleId}</p>
+                    <button onclick="editEmployee(${employee.employeeId})">Edit</button>
+                    <button onclick="deleteEmployee(${employee.employeeId})">Delete</button>
+                `;
+                employeesList.appendChild(employeeDiv);
+            });
+        });
+}
+
+function fetchDepartments() {
+    fetch('/api/departments')
+        .then(response => response.json())
+        .then(departments => {
+            const departmentsList = document.getElementById('departments-list');
+            departmentsList.innerHTML = '';
+            departments.forEach(department => {
+                const departmentDiv = document.createElement('div');
+                departmentDiv.innerHTML = `
+                    <p><strong>ID:</strong> ${department.departmentId}</p>
+                    <p><strong>Name:</strong> ${department.departmentName}</p>
+                    <button onclick="editDepartment(${department.departmentId})">Edit</button>
+                    <button onclick="deleteDepartment(${department.departmentId})">Delete</button>
+                `;
+                departmentsList.appendChild(departmentDiv);
+            });
+        });
+}
+
+function fetchRoles() {
+    fetch('/api/roles')
+        .then(response => response.json())
+        .then(roles => {
+            const rolesList = document.getElementById('roles-list');
+            rolesList.innerHTML = '';
+            roles.forEach(role => {
+                const roleDiv = document.createElement('div');
+                roleDiv.innerHTML = `
+                    <p><strong>ID:</strong> ${role.roleId}</p>
+                    <p><strong>Name:</strong> ${role.roleName}</p>
+                    <button onclick="editRole(${role.roleId})">Edit</button>
+                    <button onclick="deleteRole(${role.roleId})">Delete</button>
+                `;
+                rolesList.appendChild(roleDiv);
+            });
+        });
+}
+
+function fetchReviews() {
+    fetch('/api/reviews')
+        .then(response => response.json())
+        .then(reviews => {
+            const reviewsList = document.getElementById('reviews-list');
+            reviewsList.innerHTML = '';
+            reviews.forEach(review => {
+                const reviewDiv = document.createElement('div');
+                reviewDiv.innerHTML = `
+                    <p><strong>ID:</strong> ${review.reviewId}</p>
+                    <p><strong>Employee ID:</strong> ${review.employeeId}</p>
+                    <p><strong>Review Date:</strong> ${review.reviewDate}</p>
+                    <p><strong>Comments:</strong> ${review.comments}</p>
+                    <p><strong>Rating:</strong> ${review.rating}</p>
+                    <button onclick="editReview(${review.reviewId})">Edit</button>
+                    <button onclick="deleteReview(${review.reviewId})">Delete</button>
+                `;
+                reviewsList.appendChild(reviewDiv);
+            });
+        });
+}
+
+function fetchEmployeesForReviewForm() {
+    fetch('/api/employees')
+        .then(response => response.json())
+        .then(employees => {
+            const reviewEmployeeSelect = document.getElementById('review-employee');
+            employees.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.employeeId;
+                option.textContent = `${employee.firstName} ${employee.lastName}`;
+                reviewEmployeeSelect.appendChild(option);
+            });
+        });
+}
+
+function editEmployee(employeeId) {
+    alert('Edit employee functionality is not implemented yet.');
+}
+
+function deleteEmployee(employeeId) {
+    alert('Delete employee functionality is not implemented yet.');
+}
+
+function editDepartment(departmentId) {
+    alert('Edit department functionality is not implemented yet.');
+}
+
+function deleteDepartment(departmentId) {
+    alert('Delete department functionality is not implemented yet.');
+}
+
+function editRole(roleId) {
+    alert('Edit role functionality is not implemented yet.');
+}
+
+function deleteRole(roleId) {
+    alert('Delete role functionality is not implemented yet.');
+}
+
+function editReview(reviewId) {
+    alert('Edit review functionality is not implemented yet.');
+}
+
+function deleteReview(reviewId) {
+    alert('Delete review functionality is not implemented yet.');
+}
+
+function cancelEmployeeForm() {
+    document.getElementById('add-edit-employee-form').reset();
+}
+
+function cancelDepartmentForm() {
+    document.getElementById('add-edit-department-form').reset();
+}
+
+function cancelRoleForm() {
+    document.getElementById('add-edit-role-form').reset();
+}
+
+function cancelReviewForm() {
+    document.getElementById('add-edit-review-form').reset();
+}
+
+document.getElementById('add-edit-employee-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const employee = {
+        firstName: formData.get('employee-first-name'),
+        lastName: formData.get('employee-last-name'),
+        email: formData.get('employee-email'),
+        phone: formData.get('employee-phone'),
+        departmentId: formData.get('employee-department'),
+        roleId: formData.get('employee-role')
+    };
+    saveEmployee(employee);
+    this.reset();
+});
+
+document.getElementById('add-edit-department-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const department = {
+        departmentName: formData.get('department-name')
+    };
+    saveDepartment(department);
+    this.reset();
+});
+
+document.getElementById('add-edit-role-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const role = {
+        roleName: formData.get('role-name')
+    };
+    saveRole(role);
+    this.reset();
+});
+
+document.getElementById('add-edit-review-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const review = {
+        employeeId: formData.get('review-employee'),
+        reviewDate: formData.get('review-date'),
+        comments: formData.get('review-comments'),
+        rating: formData.get('review-rating')
+    };
+    saveReview(review);
+    this.reset();
+});
+
+function saveEmployee(employee) {
+    alert('Save employee functionality is not implemented yet.');
+}
+
+function saveDepartment(department) {
+    alert('Save department functionality is not implemented yet.');
+}
+
+function saveRole(role) {
+    alert('Save role functionality is not implemented yet.');
+}
+
+function saveReview(review) {
+    alert('Save review functionality is not implemented yet.');
+}
+
+    </script>
+</body>
+</html>
